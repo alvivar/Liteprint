@@ -1,5 +1,11 @@
-﻿// Liteprint v0.1
+﻿// Liteprint v0.1 alpha
 // Extension set for a quick & semiautomatic data pool for transform objects.
+
+// Just put '.lit' after any transform to access his powers.
+// - .litCreate( Prepares & fill a pool for the current transform (optional).
+// - .litSpawn( Returns a clone from the pool based on the current transform (Instantiate-like).
+// - .litRecycle() Put back the current clone to his pool for reuse.
+// - .litFlush() Cleans & destroy all pool elements for the current transform.
 
 // Created by Andrés Villalobos [andresalvivar@gmail.com] [twitter.com/matnesis]
 // 14/02/2015 4:21 pm
@@ -32,11 +38,6 @@ using UnityEngine;
 
 /// <summary>
 /// Extension set for a quick & semiautomatic data pool for transform objects.
-/// Just put '.lit' after any transform to access his powers.
-/// - .litCreate( Prepares a pool for the current transform (optional).
-/// - .litSpawn( Returns a clone from the pool based on the current transform.
-/// - .litRecycle() Put back the current clone to his pool for reuse.
-/// - .litFlush() Cleans & destroy all pool elements for the current transform.
 /// </summary>
 public static class Liteprint
 {
@@ -74,7 +75,7 @@ public static class Liteprint
 
 
     /// <summary>
-    /// Prepares a pool for the current transform.
+    /// Prepares & fill a pool for the current transform.
     /// </summary>
     public static void litCreatePool(this Transform instance, int quantity)
     {
@@ -91,7 +92,7 @@ public static class Liteprint
 
 
     /// <summary>
-    /// Returns a clone from the pool based on the current transform.
+    /// Returns a clone from the pool based on the current transform (Instantiate-like).
     /// </summary>
     public static Transform litSpawn(this Transform instance, Vector3 position, Quaternion rotation)
     {
