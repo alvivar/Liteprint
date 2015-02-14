@@ -1,7 +1,6 @@
 ###Liteprint v0.1
 
 Extension set for a quick & semiautomatic data pool for transform objects.
-
 Just put '.lit' after any transform to access his powers.
 
 - **.litCreate(** Prepares a pool for the current transform (optional).
