@@ -1,13 +1,18 @@
-﻿using System.Collections.Generic;
+﻿// Created by [Andrés Villalobos](http://twitter.com/matnesis)
+// > 2015/02/14 4:21 pm
+
+
+using System.Collections.Generic;
 using UnityEngine;
 
 
 /// <summary>
-/// Liteprint is a quick semiautomatic data pool for transform objects (as an extension set). 
-/// Just put .lit after any transform to access his powers.
-/// .litCreate, prepares a pool for the current transform (optional).
-/// .litSpawn, just like Instantiate but using a clone from the pool.
-/// .litRecycle, use it on any spawned object to put it back on the pool.
+/// Extension set for a quick & semiautomatic data pool for transform objects.
+/// Just put '.lit' after any transform to access his powers.
+/// - *.litCreate(* Prepares a pool for the current transform (optional).
+/// - *.litSpawn(* Returns a clone from the pool based on the current transform.
+/// - *.litRecycle()* Put back the current clone to his pool for reuse.
+/// - *.litFlush()* Cleans & destroy all pool elements for the current transform.
 /// </summary>
 public static class Liteprint
 {
@@ -96,7 +101,7 @@ public static class Liteprint
 
 
     /// <summary>
-    /// Put back the current clone to his pool, ready to be used again.
+    /// Put back the current clone to his pool for reuse.
     /// </summary>
     public static bool litRecycle(this Transform instance)
     {
