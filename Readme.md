@@ -1,4 +1,4 @@
-Liteprint v0.1 alpha
+###Liteprint v0.1 alpha
 Extension set for a quick & semiautomatic data pool for transform objects.
 
 Just put '.lp' after any transform to access his powers.
