@@ -1,11 +1,12 @@
 ﻿// Liteprint v0.1 alpha
 // Extension set for a quick & semiautomatic data pool for transform objects.
 
-// Just put '.lit' after any transform to access his powers.
-// - .litCreate( Prepares & fill a pool for the current transform (optional).
-// - .litSpawn( Returns a clone from the pool based on the current transform (Instantiate-like).
-// - .litRecycle() Put back the current clone to his pool for reuse.
-// - .litFlush() Cleans & destroy all pool elements for the current transform.
+// Just put '.lp' after any transform to access his powers.
+
+// - .lpCreate( Prepares & fill a pool for the current transform (optional).
+// - .lpSpawn( Returns a clone from the pool based on the current transform (Instantiate-like).
+// - .lpRecycle() Put back the current clone to his pool for reuse.
+// - .lpFlush() Cleans & destroy all pool elements for the current transform.
 
 // Created by Andrés Villalobos [andresalvivar@gmail.com] [twitter.com/matnesis]
 // 14/02/2015 4:21 pm
@@ -77,14 +78,15 @@ public static class Liteprint
     /// <summary>
     /// Prepares & fill a pool for the current transform.
     /// </summary>
-    public static void litCreatePool(this Transform instance, int quantity)
+    public static void lpCreate(this Transform instance, int quantity)
     {
         PrepareInternalDictionaries(instance);
 
         Vector3 pos = instance.position;
         while (quantity-- > 0)
         {
-            Transform newClone = MonoBehaviour.Instantiate(instance, pos + new Vector3(-9999, -9999, -9999), Quaternion.identity) as Transform;
+            Transform newClone =
+                MonoBehaviour.Instantiate(instance, pos + new Vector3(-9999, -9999, -9999), Quaternion.identity) as Transform;
             newClone.parent = GetParent(instance);
             readyPool[instance].Add(newClone);
         }
@@ -94,13 +96,13 @@ public static class Liteprint
     /// <summary>
     /// Returns a clone from the pool based on the current transform (Instantiate-like).
     /// </summary>
-    public static Transform litSpawn(this Transform instance, Vector3 position, Quaternion rotation)
+    public static Transform lpSpawn(this Transform instance, Vector3 position, Quaternion rotation)
     {
         PrepareInternalDictionaries(instance);
 
         // If not enough, create more
         if (readyPool[instance].Count < 1)
-            instance.litCreatePool(2);
+            instance.lpCreate(2);
 
         // First on the pool
         Transform spawn = readyPool[instance][0];
@@ -109,7 +111,7 @@ public static class Liteprint
         if (spawn == null)
         {
             readyPool[instance].RemoveAt(0);
-            return instance.litSpawn(position, rotation);
+            return instance.lpSpawn(position, rotation);
         }
 
         // Allocation
@@ -117,7 +119,7 @@ public static class Liteprint
         spawn.position = position;
         spawn.rotation = rotation;
 
-        // Pool swap 
+        // Pool swap
         readyPool[instance].RemoveAt(0);
         outPool[spawn] = instance;
 
@@ -128,7 +130,7 @@ public static class Liteprint
     /// <summary>
     /// Put back the current clone to his pool for reuse.
     /// </summary>
-    public static bool litRecycle(this Transform instance)
+    public static bool lpRecycle(this Transform instance)
     {
         PrepareInternalDictionaries(instance);
 
@@ -145,7 +147,7 @@ public static class Liteprint
     /// <summary>
     /// Cleans & destroy all pool elements for the current transform.
     /// </summary>
-    public static void litFlush(this Transform instance)
+    public static void lpFlush(this Transform instance)
     {
         if (readyPool.ContainsKey(instance))
         {
