@@ -3,7 +3,7 @@
 
 // Just put '.lp' after any transform to access his powers.
 
-// - .lpCreate( Prepares & fill a pool for the current transform (optional).
+// - .lpRefill( Prepares & fill a pool for the current transform (optional).
 // - .lpSpawn( Returns a clone from the pool based on the current transform (Instantiate-like).
 // - .lpRecycle() Put back the current clone to his pool for reuse.
 // - .lpFlush() Cleans & destroy all pool elements for the current transform.
@@ -78,7 +78,7 @@ public static class Liteprint
     /// <summary>
     /// Prepares & fill a pool for the current transform.
     /// </summary>
-    public static void lpCreate(this Transform instance, int quantity)
+    public static void lpRefill(this Transform instance, int quantity)
     {
         PrepareInternalDictionaries(instance);
 
@@ -102,7 +102,7 @@ public static class Liteprint
 
         // If not enough, create more
         if (readyPool[instance].Count < 1)
-            instance.lpCreate(2);
+            instance.lpRefill(2);
 
         // First on the pool
         Transform spawn = readyPool[instance][0];
