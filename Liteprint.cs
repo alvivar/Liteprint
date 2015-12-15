@@ -1,15 +1,15 @@
-﻿// Liteprint v0.1 alpha
-// Extension set for a quick & semiautomatic data pool for transform objects.
+﻿// Liteprint v0.2 alpha
 
-// Just put '.lp' after any transform to access his powers.
+// Extension set for a quick semiautomatic data pool for transform objects.
+// Just put '.lp' on any Transform.
 
-// - .lpRefill( Prepares & fill a pool for the current transform (optional).
-// - .lpSpawn( Returns a clone from the pool based on the current transform (Instantiate-like).
-// - .lpRecycle() Put back the current clone to his pool for reuse.
-// - .lpFlush() Cleans & destroy all pool elements for the current transform.
+// - .lpRefill() ^ Prepares and fill a pool for the current transform (optional).
+// - .lpSpawn() ^ Returns a clone from the pool based on the current transform (Instantiate-like).
+// - .lpRecycle() ^ Put back the current clone to his pool for reuse.
+// - .lpFlush() ^ Cleans and destroy all pool elements for the current transform.
 
-// Created by Andrés Villalobos [andresalvivar@gmail.com] [twitter.com/matnesis]
-// 14/02/2015 4:21 pm
+// By Andrés Villalobos ^ twitter.com/matnesis ^ andresalvivar@gmail.com
+// Created 14/02/2015 4:21 pm
 
 
 // Copyright (c) 14/02/2015 andresalvivar@gmail.com
@@ -38,7 +38,7 @@ using UnityEngine;
 
 
 /// <summary>
-/// Extension set for a quick & semiautomatic data pool for transform objects.
+/// Extension set for a quick semiautomatic data pool for transform objects.
 /// </summary>
 public static class Liteprint
 {
@@ -66,7 +66,7 @@ public static class Liteprint
 
     private static Transform GetParent(Transform from)
     {
-        string parentName = "[Liteprint::" + from.name + "." + from.GetInstanceID() + "]";
+        string parentName = "[Liteprint::" + from.name + "(" + from.GetInstanceID() + ")]";
         GameObject parent = GameObject.Find(parentName);
         if (parent == null)
             parent = new GameObject(parentName);
@@ -76,18 +76,20 @@ public static class Liteprint
 
 
     /// <summary>
-    /// Prepares & fill a pool for the current transform.
+    /// Prepares and fill a pool for the current transform.
     /// </summary>
     public static void lpRefill(this Transform instance, int quantity)
     {
         PrepareInternalDictionaries(instance);
 
-        Vector3 pos = instance.position;
         while (quantity-- > 0)
         {
             Transform newClone =
-                MonoBehaviour.Instantiate(instance, pos + new Vector3(-9999, -9999, -9999), Quaternion.identity) as Transform;
+                MonoBehaviour.Instantiate(instance, Vector3.zero, Quaternion.identity) as Transform;
+
+            newClone.gameObject.SetActive(false);
             newClone.parent = GetParent(instance);
+
             readyPool[instance].Add(newClone);
         }
     }
@@ -104,7 +106,7 @@ public static class Liteprint
         if (readyPool[instance].Count < 1)
             instance.lpRefill(2);
 
-        // First on the pool
+        // First from the pool
         Transform spawn = readyPool[instance][0];
 
         // Skip nulls & retry
@@ -115,6 +117,7 @@ public static class Liteprint
         }
 
         // Allocation
+        spawn.gameObject.SetActive(true);
         spawn.parent = GetParent(instance);
         spawn.position = position;
         spawn.rotation = rotation;
@@ -129,6 +132,7 @@ public static class Liteprint
 
     /// <summary>
     /// Put back the current clone to his pool for reuse.
+    /// True on success, False if the Transform doesn't belong to any pool.
     /// </summary>
     public static bool lpRecycle(this Transform instance)
     {
@@ -145,7 +149,7 @@ public static class Liteprint
 
 
     /// <summary>
-    /// Cleans & destroy all pool elements for the current transform.
+    /// Cleans and destroy all pool elements for the current transform.
     /// </summary>
     public static void lpFlush(this Transform instance)
     {
