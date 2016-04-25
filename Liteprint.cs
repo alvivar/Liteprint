@@ -1,7 +1,7 @@
-﻿// Liteprint v0.2 alpha
+﻿// Liteprint v0.3 alpha
 
 // Extension set for a quick semiautomatic data pool for transform objects.
-// Just put '.lp' on any Transform.
+// Just use '.lp' on any Transform.
 
 // - .lpRefill() ^ Prepares and fill a pool for the current transform (optional).
 // - .lpSpawn() ^ Returns a clone from the pool based on the current transform (Instantiate-like).
@@ -76,11 +76,14 @@ public static class Liteprint
 
 
     /// <summary>
-    /// Prepares and fill a pool for the current transform.
+    /// Makes sures there is a quantity of ready-to-be-used pool elements.
     /// </summary>
     public static void lpRefill(this Transform instance, int quantity)
     {
         PrepareInternalDictionaries(instance);
+
+        // Take in consideration the current free elements
+        quantity = quantity <= readyPool[instance].Count ? 0 : quantity - readyPool[instance].Count;
 
         while (quantity-- > 0)
         {
