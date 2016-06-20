@@ -1,14 +1,14 @@
-﻿// Liteprint v0.3 alpha
+﻿
+// Liteprint v0.3.2 alpha
 
-// Extension set for a quick semiautomatic data pool for transform objects.
-// Just use '.lp' on any Transform.
+// Unity Transform Pool Extension Set. Just use '.lite' on any Transform.
 
-// - .lpRefill() ^ Prepares and fill a pool for the current transform (optional).
-// - .lpSpawn() ^ Returns a clone from the pool based on the current transform (Instantiate-like).
-// - .lpRecycle() ^ Put back the current clone to his pool for reuse.
-// - .lpFlush() ^ Cleans and destroy all pool elements for the current transform.
+// .liteRefill( ~> Makes sures there is a quantity of free pool elements ready to be used.
+// .liteInstantiate( ~> Returns a clone from the pool based on the current Transform.
+// .liteRecycle( ~> Use this on a clone to put him back to his pool for reuse.
+// .liteFlush( ~> Cleans the pool and destroys all elements for the current transform.
 
-// By Andrés Villalobos ^ twitter.com/matnesis ^ andresalvivar@gmail.com
+// By Andrés Villalobos ~ twitter.com/matnesis ~ andresalvivar@gmail.com
 // Created 14/02/2015 4:21 pm
 
 
@@ -33,137 +33,146 @@
 // SOFTWARE.
 
 
-using System.Collections.Generic;
-using UnityEngine;
-
-
-/// <summary>
-/// Extension set for a quick semiautomatic data pool for transform objects.
-/// </summary>
-public static class Liteprint
+namespace matnesis.Liteprint
 {
-    private static Dictionary<Transform, List<Transform>> readyPool;
-    private static Dictionary<Transform, Transform> outPool;
-
-
-    private static void PrepareInternalDictionaries(Transform instance)
-    {
-        // Dictionaries
-        if (readyPool == null)
-            readyPool = new Dictionary<Transform, List<Transform>>();
-
-        if (outPool == null)
-            outPool = new Dictionary<Transform, Transform>();
-
-        // Pool lists
-        if (readyPool.ContainsKey(instance) == false)
-            readyPool[instance] = new List<Transform>();
-
-        if (readyPool[instance] == null)
-            readyPool[instance] = new List<Transform>();
-    }
-
-
-    private static Transform GetParent(Transform from)
-    {
-        string parentName = "[Liteprint::" + from.name + "(" + from.GetInstanceID() + ")]";
-        GameObject parent = GameObject.Find(parentName);
-        if (parent == null)
-            parent = new GameObject(parentName);
-
-        return parent.transform;
-    }
-
+    using System.Collections.Generic;
+    using UnityEngine;
 
     /// <summary>
-    /// Makes sures there is a quantity of ready-to-be-used pool elements.
+    /// Unity Transform Pool Extension Set.
     /// </summary>
-    public static void lpRefill(this Transform instance, int quantity)
+    public static class Liteprint
     {
-        PrepareInternalDictionaries(instance);
+        private static Dictionary<Transform, List<Transform>> _readyPool;
+        private static Dictionary<Transform, Transform> _outPool; // <Instance used, Prefab pool>
+        private static Transform _parent;
 
-        // Take in consideration the current free elements
-        quantity = quantity <= readyPool[instance].Count ? 0 : quantity - readyPool[instance].Count;
 
-        while (quantity-- > 0)
+        private static void PrepareInternalData(Transform readyPoolPrefab = null)
         {
-            Transform newClone =
-                MonoBehaviour.Instantiate(instance, Vector3.zero, Quaternion.identity) as Transform;
+            if (_readyPool == null)
+                _readyPool = new Dictionary<Transform, List<Transform>>();
 
-            newClone.gameObject.SetActive(false);
-            newClone.parent = GetParent(instance);
-
-            readyPool[instance].Add(newClone);
-        }
-    }
+            if (readyPoolPrefab && !_readyPool.ContainsKey(readyPoolPrefab))
+                _readyPool[readyPoolPrefab] = new List<Transform>();
 
 
-    /// <summary>
-    /// Returns a clone from the pool based on the current transform (Instantiate-like).
-    /// </summary>
-    public static Transform lpSpawn(this Transform instance, Vector3 position, Quaternion rotation)
-    {
-        PrepareInternalDictionaries(instance);
-
-        // If not enough, create more
-        if (readyPool[instance].Count < 1)
-            instance.lpRefill(2);
-
-        // First from the pool
-        Transform spawn = readyPool[instance][0];
-
-        // Skip nulls & retry
-        if (spawn == null)
-        {
-            readyPool[instance].RemoveAt(0);
-            return instance.lpSpawn(position, rotation);
+            if (_outPool == null)
+                _outPool = new Dictionary<Transform, Transform>();
         }
 
-        // Allocation
-        spawn.gameObject.SetActive(true);
-        spawn.parent = GetParent(instance);
-        spawn.position = position;
-        spawn.rotation = rotation;
 
-        // Pool swap
-        readyPool[instance].RemoveAt(0);
-        outPool[spawn] = instance;
-
-        return spawn;
-    }
-
-
-    /// <summary>
-    /// Put back the current clone to his pool for reuse.
-    /// True on success, False if the Transform doesn't belong to any pool.
-    /// </summary>
-    public static bool lpRecycle(this Transform instance)
-    {
-        PrepareInternalDictionaries(instance);
-
-        if (outPool.ContainsKey(instance) == true)
+        private static Transform GetParent() // Transform from)
         {
-            readyPool[outPool[instance]].Add(instance);
-            return true;
-        }
-
-        return false;
-    }
-
-
-    /// <summary>
-    /// Cleans and destroy all pool elements for the current transform.
-    /// </summary>
-    public static void lpFlush(this Transform instance)
-    {
-        if (readyPool.ContainsKey(instance))
-        {
-            foreach (Transform t in readyPool[instance])
+            // Search
+            if (_parent == null)
             {
-                if (outPool.ContainsKey(t))
-                    outPool.Remove(t);
+                string parentName = "[@Liteprint]"; // + from.name + "@" + from.GetInstanceID() + "]";
 
-                MonoBehaviour.Destroy(t.gameObject);
+                GameObject parent = GameObject.Find(parentName);
+                if (parent == null)
+                    parent = new GameObject(parentName);
+
+                _parent = parent.transform;
+            }
+
+
+            return _parent;
+        }
+
+
+        /// <summary>
+        /// Makes sures there is a quantity of free pool elements ready to be used.
+        /// </summary>
+        public static void liteRefill(this Transform prefab, int quantity)
+        {
+            PrepareInternalData(prefab);
+
+
+            // Take in consideration the current free elements
+            quantity = quantity <= _readyPool[prefab].Count ? 0 : quantity - _readyPool[prefab].Count;
+
+            while (quantity-- > 0)
+            {
+                Transform newClone = MonoBehaviour.Instantiate(prefab, Vector3.zero, Quaternion.identity) as Transform;
+                newClone.parent = GetParent();
+                _readyPool[prefab].Add(newClone);
+            }
+        }
+
+
+        /// <summary>
+        /// Returns a clone from the pool based on the current Transform.
+        /// </summary>
+        public static Transform liteInstantiate(this Transform prefab, Vector3 position, Quaternion rotation)
+        {
+            PrepareInternalData(prefab);
+
+
+            // If empty, create
+            if (_readyPool[prefab].Count < 1)
+                prefab.liteRefill(1);
+
+            // Take the First
+            Transform spawn = _readyPool[prefab][0];
+
+            // Retry on null
+            if (spawn == null)
+            {
+                _readyPool[prefab].RemoveAt(0);
+                return prefab.liteInstantiate(position, rotation);
+            }
+
+            // Allocation
+            spawn.gameObject.SetActive(true); // Just in case
+            spawn.position = position;
+            spawn.rotation = rotation;
+            spawn.parent = GetParent();
+
+            // Pool swap
+            _readyPool[prefab].RemoveAt(0);
+            _outPool[spawn] = prefab;
+
+            return spawn;
+        }
+
+
+        /// <summary>
+        /// Use this on a clone to put him back to his pool for reuse. True on
+        /// success, False if the Transform doesn't belong to any pool.
+        /// </summary>
+        public static bool liteRecycle(this Transform usedInstance)
+        {
+            PrepareInternalData();
+
+
+            if (_outPool.ContainsKey(usedInstance))
+            {
+                _readyPool[_outPool[usedInstance]].Add(usedInstance);
+                _outPool.Remove(usedInstance);
+
+                return true;
+            }
+
+            return false;
+        }
+
+
+        /// <summary>
+        /// Cleans the pool and destroys all elements for the current transform.
+        /// </summary>
+        public static void liteFlush(this Transform prefab)
+        {
+            PrepareInternalData(prefab);
+
+
+            if (_readyPool.ContainsKey(prefab))
+            {
+                for (int i = 0, len = _readyPool[prefab].Count; i < len; i++)
+                    MonoBehaviour.Destroy(_readyPool[prefab][i].gameObject);
+                _readyPool[prefab].Clear();
+
+                // #todo The _outPool needs cleaning
             }
         }
     }
