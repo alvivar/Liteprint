@@ -62,6 +62,9 @@ namespace matnesis.Liteprint
         }
 
 
+        /// <summary>
+        /// Gets a Transform that will hold the pool as children.
+        /// </summary>
         private static Transform GetParent() // Transform from)
         {
             // Search
@@ -84,7 +87,7 @@ namespace matnesis.Liteprint
         /// <summary>
         /// Makes sures there is a quantity of free pool elements ready to be used.
         /// </summary>
-        public static void liteRefill(this Transform prefab, int quantity)
+        public static void liteRefill(this Transform prefab, int quantity, Vector3 position)
         {
             PrepareInternalData(prefab);
 
@@ -94,7 +97,7 @@ namespace matnesis.Liteprint
 
             while (quantity-- > 0)
             {
-                Transform newClone = MonoBehaviour.Instantiate(prefab, Vector3.zero, Quaternion.identity) as Transform;
+                Transform newClone = MonoBehaviour.Instantiate(prefab, position, Quaternion.identity) as Transform;
                 newClone.parent = GetParent();
                 _readyPool[prefab].Add(newClone);
             }
@@ -111,7 +114,7 @@ namespace matnesis.Liteprint
 
             // If empty, create
             if (_readyPool[prefab].Count < 1)
-                prefab.liteRefill(1);
+                prefab.liteRefill(1, position);
 
             // Take the First
             Transform spawn = _readyPool[prefab][0];
@@ -123,6 +126,7 @@ namespace matnesis.Liteprint
                 return prefab.liteInstantiate(position, rotation);
             }
 
+
             // Allocation
             spawn.gameObject.SetActive(true); // Just in case
             spawn.position = position;
@@ -132,6 +136,7 @@ namespace matnesis.Liteprint
             // Pool swap
             _readyPool[prefab].RemoveAt(0);
             _outPool[spawn] = prefab;
+
 
             return spawn;
         }
